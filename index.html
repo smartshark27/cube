@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cube</title>
+</head>
+<body>
+
+<script>
+    const THINK_INTERVAL_MS = 200;
+    const STEP_DISTANCE = 10;
+    var isAlive = false;
+
+    function fitCanvasToScreen() {
+        const canvas = document.getElementById('canvas');
+        canvas.setAttribute('width', window.innerWidth - 20);
+        canvas.setAttribute('height', window.innerHeight - 20);
+    }
+
+    async function giveLife() {
+        const cube = document.getElementById('cube');
+        
+        while (true) {
+            doSomething(cube);
+            await sleep(THINK_INTERVAL_MS);
+        }
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function doSomething() {
+        const choice = randomNumberBetween(0, 9)
+        if (choice === 0) {
+            move('left')
+        } else if (choice === 1) {
+            move('right')
+        } else if (choice === 2) {
+            move('up')
+        } else if (choice === 3) {
+            move ('down')
+        } else {
+            // Do nothing
+        }
+    }
+
+    function randomNumberBetween(min, max) {
+        return Math.floor(Math.random() * max) + min;
+    }
+
+    function move(direction) {
+        currX = Number(cube.getAttribute('x'));
+        currY = Number(cube.getAttribute('y'));
+
+        if (direction === 'left') {
+            cube.setAttribute('x', currX - STEP_DISTANCE);
+        } else if (direction === 'right') {
+            cube.setAttribute('x', currX + STEP_DISTANCE);
+        } else if (direction === 'up') {
+            cube.setAttribute('y', currY - STEP_DISTANCE);
+        } else if (direction === 'down') {
+            cube.setAttribute('y', currY + STEP_DISTANCE);
+        }
+    }
+</script>
+
+<svg id="canvas" onload="fitCanvasToScreen()" onresize="fitCanvasToScreen()">
+    <text x="20" y="60" font-size="50">Cube</text>
+    <rect
+        id="cube"
+        x="200" y="200" width="40" height="40"
+        stroke="black" stroke-width="3" fill="green"
+        onclick="giveLife()"
+    />
+</svg>
+
+</body>
+</html>
