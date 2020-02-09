@@ -5,20 +5,60 @@
 </head>
 <body>
 
+<svg id="canvas"
+    onload="fitCanvasToScreen()"
+    onresize="fitCanvasToScreen()"
+    onclick="canvasClick(event)"
+>
+    <text x="20" y="60" font-size="50">Cube</text>
+</svg>
+
 <script>
-    const THINK_INTERVAL_MS = 200;
+    const THINK_INTERVAL_MS = 2000;
     const STEP_DISTANCE = 10;
+    const CUBE_SIZE = 40;
+    const CUBE_FILL = 'blue';
     var isAlive = false;
+    var nextCubeID = 0;
+    const cubes = [];
 
     function fitCanvasToScreen() {
         const canvas = document.getElementById('canvas');
-        canvas.setAttribute('width', window.innerWidth - 20);
-        canvas.setAttribute('height', window.innerHeight - 20);
+        canvas.setAttribute('width', window.innerWidth);
+        canvas.setAttribute('height', window.innerHeight);
     }
 
-    async function giveLife() {
-        const cube = document.getElementById('cube');
-        
+    function canvasClick(event) {
+        // For some reason, if we don't minus 10, clicking on a square is not accurate
+        const clickX = event.clientX - 10;
+        const clickY = event.clientY - 10;
+        const isCubeClick = cubes.reduce((cubeClick, cube) => {
+            const cubeLeft = Number(cube.getAttribute('x'));
+            const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
+            const cubeTop = Number(cube.getAttribute('y'));
+            const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+            return cubeClick || (cubeLeft <= clickX && clickX <= cubeRight && cubeTop <= clickY && clickY <= cubeBottom);
+        }, false);
+        if (!isCubeClick) {
+            spawnCube(clickX, clickY);
+        }
+    }
+
+    function spawnCube(x, y) {
+        const cube = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        nextCubeID++;
+        cube.setAttributeNS(null, 'id', 'cube' + nextCubeID.toString());
+        cube.setAttributeNS(null, 'x', x - CUBE_SIZE / 2);
+        cube.setAttributeNS(null, 'y', y - CUBE_SIZE / 2);
+        cube.setAttributeNS(null, 'width', CUBE_SIZE);
+        cube.setAttributeNS(null, 'height', CUBE_SIZE);
+        cube.setAttributeNS(null, 'fill', CUBE_FILL);
+        document.getElementById("canvas").appendChild(cube);
+        cubes.push(cube);
+        giveLife(cube);
+    }
+
+    async function giveLife(cube) {
         while (true) {
             doSomething(cube);
             await sleep(THINK_INTERVAL_MS);
@@ -29,16 +69,16 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    function doSomething() {
+    function doSomething(cube) {
         const choice = randomNumberBetween(0, 9)
         if (choice === 0) {
-            move('left')
+            move(cube, 'left')
         } else if (choice === 1) {
-            move('right')
+            move(cube, 'right')
         } else if (choice === 2) {
-            move('up')
+            move(cube, 'up')
         } else if (choice === 3) {
-            move ('down')
+            move(cube, 'down')
         } else {
             // Do nothing
         }
@@ -48,7 +88,7 @@
         return Math.floor(Math.random() * max) + min;
     }
 
-    function move(direction) {
+    function move(cube, direction) {
         currX = Number(cube.getAttribute('x'));
         currY = Number(cube.getAttribute('y'));
 
@@ -63,16 +103,6 @@
         }
     }
 </script>
-
-<svg id="canvas" onload="fitCanvasToScreen()" onresize="fitCanvasToScreen()">
-    <text x="20" y="60" font-size="50">Cube</text>
-    <rect
-        id="cube"
-        x="200" y="200" width="40" height="40"
-        stroke="black" stroke-width="3" fill="green"
-        onclick="giveLife()"
-    />
-</svg>
 
 </body>
 </html>
