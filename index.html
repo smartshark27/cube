@@ -14,7 +14,7 @@
 </svg>
 
 <script>
-    const THINK_INTERVAL_MS = 2000;
+    const THINK_INTERVAL_MS = 200;
     const STEP_DISTANCE = 10;
     const CUBE_SIZE = 40;
     const CUBE_FILL = 'blue';
@@ -24,22 +24,28 @@
 
     function fitCanvasToScreen() {
         const canvas = document.getElementById('canvas');
-        canvas.setAttribute('width', window.innerWidth);
-        canvas.setAttribute('height', window.innerHeight);
+        // If we don't minus 20 here, the canvas does not go right to the edge
+        canvas.setAttribute('width', window.innerWidth - 20);
+        canvas.setAttribute('height', window.innerHeight - 20);
     }
 
     function canvasClick(event) {
         // For some reason, if we don't minus 10, clicking on a square is not accurate
         const clickX = event.clientX - 10;
         const clickY = event.clientY - 10;
-        const isCubeClick = cubes.reduce((cubeClick, cube) => {
+        var backgroundClicked = true;
+        cubes.forEach(cube => {
             const cubeLeft = Number(cube.getAttribute('x'));
             const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
             const cubeTop = Number(cube.getAttribute('y'));
             const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
-            return cubeClick || (cubeLeft <= clickX && clickX <= cubeRight && cubeTop <= clickY && clickY <= cubeBottom);
+            const cubeClicked = cubeLeft <= clickX && clickX <= cubeRight && cubeTop <= clickY && clickY <= cubeBottom;
+            if (cubeClicked) {
+                backgroundClicked = false;
+                cubeClick(cube);
+            }
         }, false);
-        if (!isCubeClick) {
+        if (backgroundClicked) {
             spawnCube(clickX, clickY);
         }
     }
@@ -58,6 +64,14 @@
         giveLife(cube);
     }
 
+    function cubeClick(cube) {
+        takeDamage(cube);
+    }
+
+    function takeDamage(cube) {
+        cube.setAttribute('fill', 'red');
+    }
+
     async function giveLife(cube) {
         while (true) {
             doSomething(cube);
@@ -70,6 +84,10 @@
     }
 
     function doSomething(cube) {
+        if (hurt(cube)) {
+            recover(cube);
+            return;
+        }
         const choice = randomNumberBetween(0, 9)
         if (choice === 0) {
             move(cube, 'left')
@@ -82,6 +100,14 @@
         } else {
             // Do nothing
         }
+    }
+
+    function hurt(cube) {
+        return (cube.getAttribute('fill') === 'red');
+    }
+
+    function recover(cube) {
+        cube.setAttribute('fill', CUBE_FILL);
     }
 
     function randomNumberBetween(min, max) {
