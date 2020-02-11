@@ -6,66 +6,60 @@
 <body>
 
 <svg id="canvas"
-    onload="fitCanvasToScreen()"
-    onresize="fitCanvasToScreen()"
-    onclick="canvasClick(event)"
+    onload="fitToScreen()"
+    onresize="fitToScreen()"
 >
+    <rect id="background"
+        x="0" y="0" width="1" height="1"
+        fill="white"
+        onclick="backgroundClick(event)"
+    >
+    </rect>
     <text x="20" y="60" font-size="50">Cube</text>
 </svg>
 
 <script>
-    const THINK_INTERVAL_MS = 200;
-    const STEP_DISTANCE = 10;
-    const CUBE_SIZE = 40;
-    const CUBE_FILL = 'blue';
-    var isAlive = false;
-    var nextCubeID = 0;
-    const cubes = [];
+    const CUBE_FILL_NORMAL = 'blue';
+    const CUBE_FILL_DAMAGED = 'red';
+    const CUBE_START_SIZE = 20;
+    const CUBE_MAX_SIZE = 60;
+    const CUBE_THINK_INTERVAL_MS = 100;
+    const CUBE_MOVE_DISTANCE = 10;
 
-    function fitCanvasToScreen() {
+    function fitToScreen() {
+        // There is a 10 pixel border around the screen
+        const width = window.innerWidth - 20;
+        const height = window.innerHeight - 20;
+
         const canvas = document.getElementById('canvas');
-        // If we don't minus 20 here, the canvas does not go right to the edge
-        canvas.setAttribute('width', window.innerWidth - 20);
-        canvas.setAttribute('height', window.innerHeight - 20);
+        canvas.setAttribute('width', width);
+        canvas.setAttribute('height', height);
+
+        const background = document.getElementById('background');
+        background.setAttribute('width', width);
+        background.setAttribute('height', height);
     }
 
-    function canvasClick(event) {
-        // For some reason, if we don't minus 10, clicking on a square is not accurate
-        const clickX = event.clientX - 10;
-        const clickY = event.clientY - 10;
-        var backgroundClicked = true;
-        cubes.forEach(cube => {
-            const cubeLeft = Number(cube.getAttribute('x'));
-            const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
-            const cubeTop = Number(cube.getAttribute('y'));
-            const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
-            const cubeClicked = cubeLeft <= clickX && clickX <= cubeRight && cubeTop <= clickY && clickY <= cubeBottom;
-            if (cubeClicked) {
-                backgroundClicked = false;
-                cubeClick(cube);
-            }
-        }, false);
-        if (backgroundClicked) {
-            spawnCube(clickX, clickY);
-        }
+    function backgroundClick(event) {
+        const clickX = event.offsetX;
+        const clickY = event.offsetY;
+        spawnCube(clickX, clickY)
     }
 
     function spawnCube(x, y) {
         const cube = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        nextCubeID++;
-        cube.setAttributeNS(null, 'id', 'cube' + nextCubeID.toString());
-        cube.setAttributeNS(null, 'x', x - CUBE_SIZE / 2);
-        cube.setAttributeNS(null, 'y', y - CUBE_SIZE / 2);
-        cube.setAttributeNS(null, 'width', CUBE_SIZE);
-        cube.setAttributeNS(null, 'height', CUBE_SIZE);
-        cube.setAttributeNS(null, 'fill', CUBE_FILL);
+        cube.setAttributeNS(null, 'x', x - CUBE_START_SIZE / 2);
+        cube.setAttributeNS(null, 'y', y - CUBE_START_SIZE / 2);
+        cube.setAttributeNS(null, 'width', CUBE_START_SIZE);
+        cube.setAttributeNS(null, 'height', CUBE_START_SIZE);
+        cube.setAttributeNS(null, 'fill', CUBE_FILL_NORMAL);
+        cube.setAttributeNS(null, 'onclick', 'cubeClick(event)');
         document.getElementById("canvas").appendChild(cube);
-        cubes.push(cube);
         giveLife(cube);
     }
 
-    function cubeClick(cube) {
-        takeDamage(cube);
+    function cubeClick(event) {
+        takeDamage(event.target);
     }
 
     function takeDamage(cube) {
@@ -75,7 +69,7 @@
     async function giveLife(cube) {
         while (true) {
             doSomething(cube);
-            await sleep(THINK_INTERVAL_MS);
+            await sleep(CUBE_THINK_INTERVAL_MS);
         }
     }
 
@@ -84,11 +78,11 @@
     }
 
     function doSomething(cube) {
-        if (hurt(cube)) {
+        if (damaged(cube)) {
             recover(cube);
             return;
         }
-        const choice = randomNumberBetween(0, 9)
+        const choice = randomNumberBetween(0, 13)
         if (choice === 0) {
             move(cube, 'left')
         } else if (choice === 1) {
@@ -97,17 +91,21 @@
             move(cube, 'up')
         } else if (choice === 3) {
             move(cube, 'down')
+        } else if (choice === 4) {
+            grow(cube, 'fat')
+        } else if (choice === 5) {
+            grow(cube, 'tall')
         } else {
             // Do nothing
         }
     }
 
-    function hurt(cube) {
-        return (cube.getAttribute('fill') === 'red');
+    function damaged(cube) {
+        return (cube.getAttribute('fill') === CUBE_FILL_DAMAGED);
     }
 
     function recover(cube) {
-        cube.setAttribute('fill', CUBE_FILL);
+        cube.setAttribute('fill', CUBE_FILL_NORMAL);
     }
 
     function randomNumberBetween(min, max) {
@@ -119,15 +117,51 @@
         currY = Number(cube.getAttribute('y'));
 
         if (direction === 'left') {
-            cube.setAttribute('x', currX - STEP_DISTANCE);
+            cube.setAttribute('x', currX - CUBE_MOVE_DISTANCE);
         } else if (direction === 'right') {
-            cube.setAttribute('x', currX + STEP_DISTANCE);
+            cube.setAttribute('x', currX + CUBE_MOVE_DISTANCE);
         } else if (direction === 'up') {
-            cube.setAttribute('y', currY - STEP_DISTANCE);
+            cube.setAttribute('y', currY - CUBE_MOVE_DISTANCE);
         } else if (direction === 'down') {
-            cube.setAttribute('y', currY + STEP_DISTANCE);
+            cube.setAttribute('y', currY + CUBE_MOVE_DISTANCE);
         }
     }
+
+    function grow(cube, direction) {
+        currWidth = Number(cube.getAttribute('width'));
+        currHeight = Number(cube.getAttribute('height'));
+        if (currWidth >= CUBE_MAX_SIZE || currHeight >= CUBE_MAX_SIZE) return;
+        currX = Number(cube.getAttribute('x'));
+        currY = Number(cube.getAttribute('y'));
+
+        if (direction === 'fat') {
+            growFat(cube, currX, currWidth)
+        } else { // direction === 'tall'
+            growTall(cube, currY, currHeight)
+        }
+    }
+
+    function growFat(cube, currX, currWidth) {
+        cube.setAttribute('x', currX - 1);
+        cube.setAttribute('width', currWidth + 2);
+    }
+
+    function growTall(cube, currY, currHeight) {
+        cube.setAttribute('y', currY - 1);
+        cube.setAttribute('height', currHeight + 2);
+    }
+
+    // function backgroundClicked(clickX, clickY) {
+    //     var cubeClicked = false;;
+    //     cubes.forEach(cube => {
+    //         const cubeLeft = Number(cube.getAttribute('x'));
+    //         const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
+    //         const cubeTop = Number(cube.getAttribute('y'));
+    //         const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+    //         cubeClicked = cubeClicked || (cubeLeft <= clickX && clickX <= cubeRight && cubeTop <= clickY && clickY <= cubeBottom);
+    //     });
+    //     return !cubeClicked;
+    // }
 </script>
 
 </body>
