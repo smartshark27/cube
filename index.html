@@ -26,6 +26,9 @@
     const CUBE_THINK_INTERVAL_MS = 100;
     const CUBE_MOVE_DISTANCE = 10;
 
+    var nextCubeID = 0;
+    const cubes = [];
+
     function fitToScreen() {
         // There is a 10 pixel border around the screen
         const width = window.innerWidth - 20;
@@ -48,6 +51,8 @@
 
     function spawnCube(x, y) {
         const cube = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        nextCubeID++;
+        cube.setAttributeNS(null, 'id', nextCubeID);
         cube.setAttributeNS(null, 'x', x - CUBE_START_SIZE / 2);
         cube.setAttributeNS(null, 'y', y - CUBE_START_SIZE / 2);
         cube.setAttributeNS(null, 'width', CUBE_START_SIZE);
@@ -55,6 +60,7 @@
         cube.setAttributeNS(null, 'fill', CUBE_FILL_NORMAL);
         cube.setAttributeNS(null, 'onclick', 'cubeClick(event)');
         document.getElementById("canvas").appendChild(cube);
+        cubes.push(cube);
         giveLife(cube);
     }
 
@@ -125,6 +131,34 @@
         } else if (direction === 'down') {
             cube.setAttribute('y', currY + CUBE_MOVE_DISTANCE);
         }
+
+        if (checkCollision(cube)) {
+            takeDamage(cube);
+        }
+    }
+
+    function checkCollision(cube) {
+        const cubeID = cube.getAttribute('id');
+        const cubeLeft = Number(cube.getAttribute('x'));
+        const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
+        const cubeTop = Number(cube.getAttribute('y'));
+        const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+        var collision = false;
+        cubes.forEach(otherCube => {
+            const otherCubeID = otherCube.getAttribute('id');
+            if (cubeID === otherCubeID) return;
+            const otherCubeLeft = Number(otherCube.getAttribute('x'));
+            const otherCubeRight = otherCubeLeft + Number(otherCube.getAttribute('width'));
+            const otherCubeTop = Number(otherCube.getAttribute('y'));
+            const otherCubeBottom = otherCubeTop + Number(otherCube.getAttribute('height'));
+            collision = collision || (
+                cubeLeft <= otherCubeRight &&
+                cubeRight >= otherCubeLeft &&
+                cubeTop <= otherCubeBottom &&
+                cubeBottom >= otherCubeTop
+            );
+        });
+        return collision;
     }
 
     function grow(cube, direction) {
@@ -150,18 +184,6 @@
         cube.setAttribute('y', currY - 1);
         cube.setAttribute('height', currHeight + 2);
     }
-
-    // function backgroundClicked(clickX, clickY) {
-    //     var cubeClicked = false;;
-    //     cubes.forEach(cube => {
-    //         const cubeLeft = Number(cube.getAttribute('x'));
-    //         const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
-    //         const cubeTop = Number(cube.getAttribute('y'));
-    //         const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
-    //         cubeClicked = cubeClicked || (cubeLeft <= clickX && clickX <= cubeRight && cubeTop <= clickY && clickY <= cubeBottom);
-    //     });
-    //     return !cubeClicked;
-    // }
 </script>
 
 </body>
