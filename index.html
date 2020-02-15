@@ -125,20 +125,36 @@
 
         if (direction === 'left') {
             cube.setAttribute('x', currX - CUBE_MOVE_DISTANCE);
+            if (checkCollision(cube)) {
+                cube.setAttribute('x', currX);
+                takeDamage(cube);
+            }
         } else if (direction === 'right') {
             cube.setAttribute('x', currX + CUBE_MOVE_DISTANCE);
+            if (checkCollision(cube)) {
+                cube.setAttribute('x', currX);
+                takeDamage(cube);
+            }
         } else if (direction === 'up') {
             cube.setAttribute('y', currY - CUBE_MOVE_DISTANCE);
+            if (checkCollision(cube)) {
+                cube.setAttribute('y', currY);
+                takeDamage(cube);
+            }
         } else if (direction === 'down') {
             cube.setAttribute('y', currY + CUBE_MOVE_DISTANCE);
-        }
-
-        if (checkCollision(cube)) {
-            takeDamage(cube);
+            if (checkCollision(cube)) {
+                cube.setAttribute('y', currY);
+                takeDamage(cube);
+            }
         }
     }
 
     function checkCollision(cube) {
+        return checkCollisionWithCube(cube) || checkCollisionWithScreenEdge(cube);
+    }
+
+    function checkCollisionWithCube(cube) {
         const cubeID = cube.getAttribute('id');
         const cubeLeft = Number(cube.getAttribute('x'));
         const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
@@ -162,6 +178,24 @@
         return collision;
     }
 
+    function checkCollisionWithScreenEdge(cube) {
+        const cubeLeft = Number(cube.getAttribute('x'));
+        const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
+        const cubeTop = Number(cube.getAttribute('y'));
+        const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+
+        const background = document.getElementById('background');
+        const backgroundLeft = Number(background.getAttribute('x'));
+        const backgroundRight = backgroundLeft + Number(background.getAttribute('width'));
+        const backgroundTop = Number(background.getAttribute('y'));
+        const backgroundBottom = backgroundTop + Number(background.getAttribute('height'));
+
+        return  cubeLeft <= backgroundLeft ||
+                cubeRight >= backgroundRight ||
+                cubeTop <= backgroundTop ||
+                cubeBottom >= backgroundBottom;
+    }
+
     function grow(cube, direction) {
         currWidth = Number(cube.getAttribute('width'));
         currHeight = Number(cube.getAttribute('height'));
@@ -179,11 +213,21 @@
     function growFat(cube, currX, currWidth) {
         cube.setAttribute('x', currX - 1);
         cube.setAttribute('width', currWidth + 2);
+        if (checkCollision(cube)) {
+            cube.setAttribute('x', currX);
+            cube.setAttribute('width', currWidth);
+            takeDamage(cube);
+        }
     }
 
     function growTall(cube, currY, currHeight) {
         cube.setAttribute('y', currY - 1);
         cube.setAttribute('height', currHeight + 2);
+        if (checkCollision(cube)) {
+            cube.setAttribute('y', currY);
+            cube.setAttribute('height', currHeight);
+            takeDamage(cube);
+        }
     }
 </script>
 
