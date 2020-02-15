@@ -6,6 +6,7 @@
 <body>
 
 <svg id="canvas"
+    style="touch-action: manipulation;"
     onload="fitToScreen()"
     onresize="fitToScreen()"
 >
@@ -21,7 +22,7 @@
 <script>
     const CUBE_FILL_NORMAL = 'blue';
     const CUBE_FILL_DAMAGED = 'red';
-    const CUBE_START_SIZE = 20;
+    const CUBE_START_SIZE = 1;
     const CUBE_MAX_SIZE = 60;
     const CUBE_THINK_INTERVAL_MS = 100;
     const CUBE_MOVE_DISTANCE = 10;
