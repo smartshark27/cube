@@ -6,7 +6,7 @@
 <body>
 
 <svg id="canvas"
-    style="touch-action: manipulation;"
+    style="touch-action: manipulation; position: absolute; left: 0; top: 0;"
     onload="fitToScreen()"
     onresize="fitToScreen()"
 >
@@ -31,9 +31,8 @@
     const cubes = [];
 
     function fitToScreen() {
-        // There is a 10 pixel border around the screen
-        const width = window.innerWidth - 20;
-        const height = window.innerHeight - 20;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
 
         const canvas = document.getElementById('canvas');
         canvas.setAttribute('width', width);
