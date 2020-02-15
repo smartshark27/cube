@@ -23,6 +23,7 @@
         const CUBE_MAX_SIZE = 60;
         const CUBE_THINK_INTERVAL_MS = 100;
         const CUBE_MOVE_DISTANCE = 10;
+        const CUBE_AGE = 4000;
 
         var nextCubeID = 0;
         const cubes = [];
@@ -70,6 +71,7 @@
 
         function cubeClick(event) {
             takeDamage(event.target);
+            updateMessage("You have clicked a cube!");
         }
 
         function takeDamage(cube) {
@@ -77,10 +79,11 @@
         }
 
         async function giveLife(cube) {
-            while (true) {
-                doSomething(cube);
+            for (age = 0; age < CUBE_AGE; age++) {
                 await sleep(CUBE_THINK_INTERVAL_MS);
+                doSomething(cube);
             }
+            die(cube);
         }
 
         function sleep(ms) {
@@ -234,6 +237,11 @@
                 cube.setAttribute('height', currHeight);
                 takeDamage(cube);
             }
+        }
+
+        function die(cube) {
+            cube.setAttribute('fill', 'grey');
+            cube.removeAttribute('onclick');
         }
     </script>
 
