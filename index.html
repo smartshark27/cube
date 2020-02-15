@@ -1,234 +1,242 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Cube</title>
+    <title>Cube</title>
 </head>
+
 <body>
 
-<svg id="canvas"
-    style="touch-action: manipulation; position: absolute; left: 0; top: 0;"
-    onload="fitToScreen()"
-    onresize="fitToScreen()"
->
-    <rect id="background"
-        x="0" y="0" width="1" height="1"
-        fill="white"
-        onclick="backgroundClick(event)"
-    >
-    </rect>
-    <text x="20" y="60" font-size="50">Cube</text>
-</svg>
+    <svg id="canvas"
+        style="touch-action: manipulation; position: absolute; left: 0; top: 0; font-family: 'Lucida Console', Monaco, monospace;"
+        onload="fitToScreen()" onresize="fitToScreen()">
+        <rect id="background" x="0" y="0" width="1" height="1" fill="white" onclick="backgroundClick(event)">
+        </rect>
+        <text x="20" y="60" font-size="48">Cube</text>
+        <text id="messageTextbox" x="20" y="100" font-size="16">Tap the screen</text>
+    </svg>
 
-<script>
-    const CUBE_FILL_NORMAL = 'blue';
-    const CUBE_FILL_DAMAGED = 'red';
-    const CUBE_START_SIZE = 1;
-    const CUBE_MAX_SIZE = 60;
-    const CUBE_THINK_INTERVAL_MS = 100;
-    const CUBE_MOVE_DISTANCE = 10;
+    <script>
+        const CUBE_FILL_NORMAL = 'blue';
+        const CUBE_FILL_DAMAGED = 'red';
+        const CUBE_START_SIZE = 1;
+        const CUBE_MAX_SIZE = 60;
+        const CUBE_THINK_INTERVAL_MS = 100;
+        const CUBE_MOVE_DISTANCE = 10;
 
-    var nextCubeID = 0;
-    const cubes = [];
+        var nextCubeID = 0;
+        const cubes = [];
 
-    function fitToScreen() {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+        function fitToScreen() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
 
-        const canvas = document.getElementById('canvas');
-        canvas.setAttribute('width', width);
-        canvas.setAttribute('height', height);
+            const canvas = document.getElementById('canvas');
+            canvas.setAttribute('width', width);
+            canvas.setAttribute('height', height);
 
-        const background = document.getElementById('background');
-        background.setAttribute('width', width);
-        background.setAttribute('height', height);
-    }
-
-    function backgroundClick(event) {
-        const clickX = event.offsetX;
-        const clickY = event.offsetY;
-        spawnCube(clickX, clickY)
-    }
-
-    function spawnCube(x, y) {
-        const cube = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        nextCubeID++;
-        cube.setAttributeNS(null, 'id', nextCubeID);
-        cube.setAttributeNS(null, 'x', x - CUBE_START_SIZE / 2);
-        cube.setAttributeNS(null, 'y', y - CUBE_START_SIZE / 2);
-        cube.setAttributeNS(null, 'width', CUBE_START_SIZE);
-        cube.setAttributeNS(null, 'height', CUBE_START_SIZE);
-        cube.setAttributeNS(null, 'fill', CUBE_FILL_NORMAL);
-        cube.setAttributeNS(null, 'onclick', 'cubeClick(event)');
-        document.getElementById("canvas").appendChild(cube);
-        cubes.push(cube);
-        giveLife(cube);
-    }
-
-    function cubeClick(event) {
-        takeDamage(event.target);
-    }
-
-    function takeDamage(cube) {
-        cube.setAttribute('fill', 'red');
-    }
-
-    async function giveLife(cube) {
-        while (true) {
-            doSomething(cube);
-            await sleep(CUBE_THINK_INTERVAL_MS);
+            const background = document.getElementById('background');
+            background.setAttribute('width', width);
+            background.setAttribute('height', height);
         }
-    }
 
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    function doSomething(cube) {
-        if (damaged(cube)) {
-            recover(cube);
-            return;
+        function backgroundClick(event) {
+            const clickX = event.offsetX;
+            const clickY = event.offsetY;
+            spawnCube(clickX, clickY)
         }
-        const choice = randomNumberBetween(0, 13)
-        if (choice === 0) {
-            move(cube, 'left')
-        } else if (choice === 1) {
-            move(cube, 'right')
-        } else if (choice === 2) {
-            move(cube, 'up')
-        } else if (choice === 3) {
-            move(cube, 'down')
-        } else if (choice === 4) {
-            grow(cube, 'fat')
-        } else if (choice === 5) {
-            grow(cube, 'tall')
-        } else {
-            // Do nothing
+
+        function spawnCube(x, y) {
+            const cube = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            nextCubeID++;
+            cube.setAttributeNS(null, 'id', nextCubeID);
+            cube.setAttributeNS(null, 'x', x - CUBE_START_SIZE / 2);
+            cube.setAttributeNS(null, 'y', y - CUBE_START_SIZE / 2);
+            cube.setAttributeNS(null, 'width', CUBE_START_SIZE);
+            cube.setAttributeNS(null, 'height', CUBE_START_SIZE);
+            cube.setAttributeNS(null, 'fill', CUBE_FILL_NORMAL);
+            cube.setAttributeNS(null, 'onclick', 'cubeClick(event)');
+            document.getElementById("canvas").appendChild(cube);
+            cubes.push(cube);
+            updateMessage('You have spawned a cube!');
+            giveLife(cube);
         }
-    }
 
-    function damaged(cube) {
-        return (cube.getAttribute('fill') === CUBE_FILL_DAMAGED);
-    }
+        function updateMessage(message) {
+            messageTextbox = document.getElementById("messageTextbox");
+            messageTextbox.textContent = message;
+            console.log(message);
+        }
 
-    function recover(cube) {
-        cube.setAttribute('fill', CUBE_FILL_NORMAL);
-    }
+        function cubeClick(event) {
+            takeDamage(event.target);
+        }
 
-    function randomNumberBetween(min, max) {
-        return Math.floor(Math.random() * max) + min;
-    }
+        function takeDamage(cube) {
+            cube.setAttribute('fill', 'red');
+        }
 
-    function move(cube, direction) {
-        currX = Number(cube.getAttribute('x'));
-        currY = Number(cube.getAttribute('y'));
-
-        if (direction === 'left') {
-            cube.setAttribute('x', currX - CUBE_MOVE_DISTANCE);
-            if (checkCollision(cube)) {
-                cube.setAttribute('x', currX);
-                takeDamage(cube);
-            }
-        } else if (direction === 'right') {
-            cube.setAttribute('x', currX + CUBE_MOVE_DISTANCE);
-            if (checkCollision(cube)) {
-                cube.setAttribute('x', currX);
-                takeDamage(cube);
-            }
-        } else if (direction === 'up') {
-            cube.setAttribute('y', currY - CUBE_MOVE_DISTANCE);
-            if (checkCollision(cube)) {
-                cube.setAttribute('y', currY);
-                takeDamage(cube);
-            }
-        } else if (direction === 'down') {
-            cube.setAttribute('y', currY + CUBE_MOVE_DISTANCE);
-            if (checkCollision(cube)) {
-                cube.setAttribute('y', currY);
-                takeDamage(cube);
+        async function giveLife(cube) {
+            while (true) {
+                doSomething(cube);
+                await sleep(CUBE_THINK_INTERVAL_MS);
             }
         }
-    }
 
-    function checkCollision(cube) {
-        return checkCollisionWithCube(cube) || checkCollisionWithScreenEdge(cube);
-    }
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
 
-    function checkCollisionWithCube(cube) {
-        const cubeID = cube.getAttribute('id');
-        const cubeLeft = Number(cube.getAttribute('x'));
-        const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
-        const cubeTop = Number(cube.getAttribute('y'));
-        const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
-        var collision = false;
-        cubes.forEach(otherCube => {
-            const otherCubeID = otherCube.getAttribute('id');
-            if (cubeID === otherCubeID) return;
-            const otherCubeLeft = Number(otherCube.getAttribute('x'));
-            const otherCubeRight = otherCubeLeft + Number(otherCube.getAttribute('width'));
-            const otherCubeTop = Number(otherCube.getAttribute('y'));
-            const otherCubeBottom = otherCubeTop + Number(otherCube.getAttribute('height'));
-            collision = collision || (
-                cubeLeft <= otherCubeRight &&
-                cubeRight >= otherCubeLeft &&
-                cubeTop <= otherCubeBottom &&
-                cubeBottom >= otherCubeTop
-            );
-        });
-        return collision;
-    }
+        function doSomething(cube) {
+            if (damaged(cube)) {
+                recover(cube);
+                return;
+            }
+            const choice = randomNumberBetween(0, 13)
+            if (choice === 0) {
+                move(cube, 'left')
+            } else if (choice === 1) {
+                move(cube, 'right')
+            } else if (choice === 2) {
+                move(cube, 'up')
+            } else if (choice === 3) {
+                move(cube, 'down')
+            } else if (choice === 4) {
+                grow(cube, 'fat')
+            } else if (choice === 5) {
+                grow(cube, 'tall')
+            } else {
+                // Do nothing
+            }
+        }
 
-    function checkCollisionWithScreenEdge(cube) {
-        const cubeLeft = Number(cube.getAttribute('x'));
-        const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
-        const cubeTop = Number(cube.getAttribute('y'));
-        const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+        function damaged(cube) {
+            return (cube.getAttribute('fill') === CUBE_FILL_DAMAGED);
+        }
 
-        const background = document.getElementById('background');
-        const backgroundLeft = Number(background.getAttribute('x'));
-        const backgroundRight = backgroundLeft + Number(background.getAttribute('width'));
-        const backgroundTop = Number(background.getAttribute('y'));
-        const backgroundBottom = backgroundTop + Number(background.getAttribute('height'));
+        function recover(cube) {
+            cube.setAttribute('fill', CUBE_FILL_NORMAL);
+        }
 
-        return  cubeLeft <= backgroundLeft ||
+        function randomNumberBetween(min, max) {
+            return Math.floor(Math.random() * max) + min;
+        }
+
+        function move(cube, direction) {
+            currX = Number(cube.getAttribute('x'));
+            currY = Number(cube.getAttribute('y'));
+
+            if (direction === 'left') {
+                cube.setAttribute('x', currX - CUBE_MOVE_DISTANCE);
+                if (checkCollision(cube)) {
+                    cube.setAttribute('x', currX);
+                    takeDamage(cube);
+                }
+            } else if (direction === 'right') {
+                cube.setAttribute('x', currX + CUBE_MOVE_DISTANCE);
+                if (checkCollision(cube)) {
+                    cube.setAttribute('x', currX);
+                    takeDamage(cube);
+                }
+            } else if (direction === 'up') {
+                cube.setAttribute('y', currY - CUBE_MOVE_DISTANCE);
+                if (checkCollision(cube)) {
+                    cube.setAttribute('y', currY);
+                    takeDamage(cube);
+                }
+            } else if (direction === 'down') {
+                cube.setAttribute('y', currY + CUBE_MOVE_DISTANCE);
+                if (checkCollision(cube)) {
+                    cube.setAttribute('y', currY);
+                    takeDamage(cube);
+                }
+            }
+        }
+
+        function checkCollision(cube) {
+            return checkCollisionWithOtherCubes(cube) || checkCollisionWithCanvasEdge(cube);
+        }
+
+        function checkCollisionWithOtherCubes(cube) {
+            const cubeID = cube.getAttribute('id');
+            const cubeLeft = Number(cube.getAttribute('x'));
+            const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
+            const cubeTop = Number(cube.getAttribute('y'));
+            const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+            var collided = false;
+            cubes.forEach(otherCube => {
+                const otherCubeID = otherCube.getAttribute('id');
+                if (cubeID === otherCubeID) return;
+                const otherCubeLeft = Number(otherCube.getAttribute('x'));
+                const otherCubeRight = otherCubeLeft + Number(otherCube.getAttribute('width'));
+                const otherCubeTop = Number(otherCube.getAttribute('y'));
+                const otherCubeBottom = otherCubeTop + Number(otherCube.getAttribute('height'));
+                collided = collided || (
+                    cubeLeft <= otherCubeRight &&
+                    cubeRight >= otherCubeLeft &&
+                    cubeTop <= otherCubeBottom &&
+                    cubeBottom >= otherCubeTop
+                );
+            });
+            if (collided) updateMessage('Your cubes have collided!');
+            return collided;
+        }
+
+        function checkCollisionWithCanvasEdge(cube) {
+            const cubeLeft = Number(cube.getAttribute('x'));
+            const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
+            const cubeTop = Number(cube.getAttribute('y'));
+            const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+
+            const background = document.getElementById('background');
+            const backgroundLeft = Number(background.getAttribute('x'));
+            const backgroundRight = backgroundLeft + Number(background.getAttribute('width'));
+            const backgroundTop = Number(background.getAttribute('y'));
+            const backgroundBottom = backgroundTop + Number(background.getAttribute('height'));
+
+            const collided = cubeLeft <= backgroundLeft ||
                 cubeRight >= backgroundRight ||
                 cubeTop <= backgroundTop ||
                 cubeBottom >= backgroundBottom;
-    }
-
-    function grow(cube, direction) {
-        currWidth = Number(cube.getAttribute('width'));
-        currHeight = Number(cube.getAttribute('height'));
-        if (currWidth >= CUBE_MAX_SIZE || currHeight >= CUBE_MAX_SIZE) return;
-        currX = Number(cube.getAttribute('x'));
-        currY = Number(cube.getAttribute('y'));
-
-        if (direction === 'fat') {
-            growFat(cube, currX, currWidth)
-        } else { // direction === 'tall'
-            growTall(cube, currY, currHeight)
+            if (collided) updateMessage('A cube has hit the edge!');
+            return collided;
         }
-    }
 
-    function growFat(cube, currX, currWidth) {
-        cube.setAttribute('x', currX - 1);
-        cube.setAttribute('width', currWidth + 2);
-        if (checkCollision(cube)) {
-            cube.setAttribute('x', currX);
-            cube.setAttribute('width', currWidth);
-            takeDamage(cube);
-        }
-    }
+        function grow(cube, direction) {
+            currWidth = Number(cube.getAttribute('width'));
+            currHeight = Number(cube.getAttribute('height'));
+            if (currWidth >= CUBE_MAX_SIZE || currHeight >= CUBE_MAX_SIZE) return;
+            currX = Number(cube.getAttribute('x'));
+            currY = Number(cube.getAttribute('y'));
 
-    function growTall(cube, currY, currHeight) {
-        cube.setAttribute('y', currY - 1);
-        cube.setAttribute('height', currHeight + 2);
-        if (checkCollision(cube)) {
-            cube.setAttribute('y', currY);
-            cube.setAttribute('height', currHeight);
-            takeDamage(cube);
+            if (direction === 'fat') {
+                growFat(cube, currX, currWidth)
+            } else { // direction === 'tall'
+                growTall(cube, currY, currHeight)
+            }
         }
-    }
-</script>
+
+        function growFat(cube, currX, currWidth) {
+            cube.setAttribute('x', currX - 1);
+            cube.setAttribute('width', currWidth + 2);
+            if (checkCollision(cube)) {
+                cube.setAttribute('x', currX);
+                cube.setAttribute('width', currWidth);
+                takeDamage(cube);
+            }
+        }
+
+        function growTall(cube, currY, currHeight) {
+            cube.setAttribute('y', currY - 1);
+            cube.setAttribute('height', currHeight + 2);
+            if (checkCollision(cube)) {
+                cube.setAttribute('y', currY);
+                cube.setAttribute('height', currHeight);
+                takeDamage(cube);
+            }
+        }
+    </script>
 
 </body>
+
 </html>
