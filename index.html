@@ -127,33 +127,23 @@
         }
 
         function move(cube, direction) {
-            currX = Number(cube.getAttribute('x'));
-            currY = Number(cube.getAttribute('y'));
+            x = Number(cube.getAttribute('x'));
+            y = Number(cube.getAttribute('y'));
 
             if (direction === 'left') {
-                cube.setAttribute('x', currX - CUBE_MOVE_DISTANCE);
-                if (checkCollision(cube)) {
-                    cube.setAttribute('x', currX);
-                    takeDamage(cube);
-                }
+                cube.setAttribute('x', x - CUBE_MOVE_DISTANCE);
             } else if (direction === 'right') {
-                cube.setAttribute('x', currX + CUBE_MOVE_DISTANCE);
-                if (checkCollision(cube)) {
-                    cube.setAttribute('x', currX);
-                    takeDamage(cube);
-                }
+                cube.setAttribute('x', x + CUBE_MOVE_DISTANCE);
             } else if (direction === 'up') {
-                cube.setAttribute('y', currY - CUBE_MOVE_DISTANCE);
-                if (checkCollision(cube)) {
-                    cube.setAttribute('y', currY);
-                    takeDamage(cube);
-                }
+                cube.setAttribute('y', y - CUBE_MOVE_DISTANCE);
             } else if (direction === 'down') {
-                cube.setAttribute('y', currY + CUBE_MOVE_DISTANCE);
-                if (checkCollision(cube)) {
-                    cube.setAttribute('y', currY);
-                    takeDamage(cube);
-                }
+                cube.setAttribute('y', y + CUBE_MOVE_DISTANCE);
+            }
+
+            if (checkCollision(cube)) {
+                cube.setAttribute('x', x);
+                cube.setAttribute('y', y);
+                takeDamage(cube);
             }
         }
 
@@ -163,28 +153,31 @@
 
         function checkCollisionWithOtherCubes(cube) {
             const cubeID = cube.getAttribute('id');
-            const cubeLeft = Number(cube.getAttribute('x'));
-            const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
-            const cubeTop = Number(cube.getAttribute('y'));
-            const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
+            const cubeBoundary = getBoundary(cube);
             var collided = false;
             cubes.forEach(otherCube => {
+                if (collided) return;
                 const otherCubeID = otherCube.getAttribute('id');
                 if (cubeID === otherCubeID) return;
                 if (isDead(otherCube)) return;
-                const otherCubeLeft = Number(otherCube.getAttribute('x'));
-                const otherCubeRight = otherCubeLeft + Number(otherCube.getAttribute('width'));
-                const otherCubeTop = Number(otherCube.getAttribute('y'));
-                const otherCubeBottom = otherCubeTop + Number(otherCube.getAttribute('height'));
-                collided = collided || (
-                    cubeLeft <= otherCubeRight &&
-                    cubeRight >= otherCubeLeft &&
-                    cubeTop <= otherCubeBottom &&
-                    cubeBottom >= otherCubeTop
-                );
+                const otherCubeBoundary = getBoundary(otherCube);
+                collided = 
+                    cubeBoundary.left <= otherCubeBoundary.right &&
+                    cubeBoundary.right >= otherCubeBoundary.left &&
+                    cubeBoundary.top <= otherCubeBoundary.bottom &&
+                    cubeBoundary.bottom >= otherCubeBoundary.top;
             });
             if (collided) updateMessage('Your cubes have collided!');
             return collided;
+        }
+
+        function getBoundary(rect) {
+            return {
+                left: Number(rect.getAttribute('x')),
+                right: Number(rect.getAttribute('x')) + Number(rect.getAttribute('width')),
+                top: Number(rect.getAttribute('y')),
+                bottom: Number(rect.getAttribute('y')) + Number(rect.getAttribute('height')),
+            }
         }
 
         function isDead(cube) {
@@ -192,21 +185,15 @@
         }
 
         function checkCollisionWithCanvasEdge(cube) {
-            const cubeLeft = Number(cube.getAttribute('x'));
-            const cubeRight = cubeLeft + Number(cube.getAttribute('width'));
-            const cubeTop = Number(cube.getAttribute('y'));
-            const cubeBottom = cubeTop + Number(cube.getAttribute('height'));
-
+            const cubeBoundary = getBoundary(cube);
             const background = document.getElementById('background');
-            const backgroundLeft = Number(background.getAttribute('x'));
-            const backgroundRight = backgroundLeft + Number(background.getAttribute('width'));
-            const backgroundTop = Number(background.getAttribute('y'));
-            const backgroundBottom = backgroundTop + Number(background.getAttribute('height'));
+            const backgroudBoundary = getBoundary(background);
 
-            const collided = cubeLeft <= backgroundLeft ||
-                cubeRight >= backgroundRight ||
-                cubeTop <= backgroundTop ||
-                cubeBottom >= backgroundBottom;
+            const collided =
+                cubeBoundary.left <= backgroudBoundary.left ||
+                cubeBoundary.right >= backgroudBoundary.right ||
+                cubeBoundary.top <= backgroudBoundary.top ||
+                cubeBoundary.bottom >= backgroudBoundary.bottom;
             if (collided) updateMessage('A cube has hit the edge!');
             return collided;
         }
