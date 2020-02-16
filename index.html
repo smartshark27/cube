@@ -10,7 +10,7 @@
     <svg id="canvas"
         style="touch-action: manipulation; position: absolute; left: 0; top: 0; font-family: 'Lucida Console', Monaco, monospace;"
         onload="fitToScreen()" onresize="fitToScreen()">
-        <rect id="background" x="0" y="0" width="1" height="1" fill="white" onclick="backgroundClick(event)">
+        <rect id="background" x="0" y="0" width="1" height="1" fill="white" onclick="handleBackgroundClick(event)">
         </rect>
         <text x="20" y="60" font-size="48">Cube</text>
         <text id="messageTextbox" x="20" y="100" font-size="16">Tap the screen</text>
@@ -19,11 +19,12 @@
     <script>
         const CUBE_FILL_NORMAL = 'blue';
         const CUBE_FILL_DAMAGED = 'red';
+        const CUBE_FILL_DEAD = 'grey';
         const CUBE_START_SIZE = 1;
         const CUBE_MAX_SIZE = 60;
         const CUBE_THINK_INTERVAL_MS = 100;
         const CUBE_MOVE_DISTANCE = 10;
-        const CUBE_AGE = 4000;
+        const CUBE_AGE = 1000;
 
         var nextCubeID = 0;
         const cubes = [];
@@ -41,7 +42,7 @@
             background.setAttribute('height', height);
         }
 
-        function backgroundClick(event) {
+        function handleBackgroundClick(event) {
             const clickX = event.offsetX;
             const clickY = event.offsetY;
             spawnCube(clickX, clickY)
@@ -56,10 +57,10 @@
             cube.setAttributeNS(null, 'width', CUBE_START_SIZE);
             cube.setAttributeNS(null, 'height', CUBE_START_SIZE);
             cube.setAttributeNS(null, 'fill', CUBE_FILL_NORMAL);
-            cube.setAttributeNS(null, 'onclick', 'cubeClick(event)');
+            cube.setAttributeNS(null, 'onclick', 'handleCubeClick(event)');
             document.getElementById("canvas").appendChild(cube);
             cubes.push(cube);
-            updateMessage('You have spawned a cube!');
+            updateMessage('You have created a cube!');
             giveLife(cube);
         }
 
@@ -69,7 +70,7 @@
             console.log(message);
         }
 
-        function cubeClick(event) {
+        function handleCubeClick(event) {
             takeDamage(event.target);
             updateMessage("You have clicked a cube!");
         }
@@ -79,7 +80,7 @@
         }
 
         async function giveLife(cube) {
-            for (age = 0; age < CUBE_AGE; age++) {
+            for (var age = 0; age < CUBE_AGE; age++) {
                 await sleep(CUBE_THINK_INTERVAL_MS);
                 doSomething(cube);
             }
@@ -91,11 +92,11 @@
         }
 
         function doSomething(cube) {
-            if (damaged(cube)) {
+            if (isDamaged(cube)) {
                 recover(cube);
                 return;
             }
-            const choice = randomNumberBetween(0, 13)
+            const choice = generateRandomNumberBetween(0, 13)
             if (choice === 0) {
                 move(cube, 'left')
             } else if (choice === 1) {
@@ -113,15 +114,15 @@
             }
         }
 
-        function damaged(cube) {
-            return (cube.getAttribute('fill') === CUBE_FILL_DAMAGED);
+        function isDamaged(cube) {
+            return cube.getAttribute('fill') === CUBE_FILL_DAMAGED;
         }
 
         function recover(cube) {
             cube.setAttribute('fill', CUBE_FILL_NORMAL);
         }
 
-        function randomNumberBetween(min, max) {
+        function generateRandomNumberBetween(min, max) {
             return Math.floor(Math.random() * max) + min;
         }
 
@@ -170,6 +171,7 @@
             cubes.forEach(otherCube => {
                 const otherCubeID = otherCube.getAttribute('id');
                 if (cubeID === otherCubeID) return;
+                if (isDead(otherCube)) return;
                 const otherCubeLeft = Number(otherCube.getAttribute('x'));
                 const otherCubeRight = otherCubeLeft + Number(otherCube.getAttribute('width'));
                 const otherCubeTop = Number(otherCube.getAttribute('y'));
@@ -183,6 +185,10 @@
             });
             if (collided) updateMessage('Your cubes have collided!');
             return collided;
+        }
+
+        function isDead(cube) {
+            return (cube.getAttribute('fill') === CUBE_FILL_DEAD);
         }
 
         function checkCollisionWithCanvasEdge(cube) {
@@ -242,6 +248,7 @@
         function die(cube) {
             cube.setAttribute('fill', 'grey');
             cube.removeAttribute('onclick');
+            updateMessage('A cube died');
         }
     </script>
 
