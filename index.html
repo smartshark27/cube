@@ -20,6 +20,7 @@
         const CUBE_FILL_NORMAL = 'blue';
         const CUBE_FILL_DAMAGED = 'red';
         const CUBE_FILL_DEAD = 'grey';
+        const CUBE_FILL_HIDDEN = 'white';
         const CUBE_START_SIZE = 1;
         const CUBE_MAX_SIZE = 60;
         const CUBE_THINK_INTERVAL_MS = 100;
@@ -168,7 +169,7 @@
                     cubeBoundary.top <= otherCubeBoundary.bottom &&
                     cubeBoundary.bottom >= otherCubeBoundary.top;
                 if (justCollided && isDead(otherCube)) {
-                    disappear(otherCube);
+                    hide(otherCube);
                     return;
                 }
                 collided = collided || justCollided;
@@ -190,7 +191,8 @@
             return (cube.getAttribute('fill') === CUBE_FILL_DEAD);
         }
 
-        function disappear(cube) {
+        function hide(cube) {
+            cube.setAttribute('fill', CUBE_FILL_HIDDEN);
             cube.setAttribute('fill-opacity', 0);
             updateMessage('A dead cube disappeared');
         }
