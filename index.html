@@ -132,15 +132,16 @@
         function move(cube, direction) {
             x = Number(cube.getAttribute('x'));
             y = Number(cube.getAttribute('y'));
+            distance = getMoveDistance(cube);
 
             if (direction === 'left') {
-                cube.setAttribute('x', x - CUBE_MOVE_DISTANCE);
+                cube.setAttribute('x', x - distance);
             } else if (direction === 'right') {
-                cube.setAttribute('x', x + CUBE_MOVE_DISTANCE);
+                cube.setAttribute('x', x + distance);
             } else if (direction === 'up') {
-                cube.setAttribute('y', y - CUBE_MOVE_DISTANCE);
+                cube.setAttribute('y', y - distance);
             } else if (direction === 'down') {
-                cube.setAttribute('y', y + CUBE_MOVE_DISTANCE);
+                cube.setAttribute('y', y + distance);
             }
 
             if (checkCollision(cube)) {
@@ -148,6 +149,11 @@
                 cube.setAttribute('y', y);
                 takeDamage(cube);
             }
+        }
+
+        function getMoveDistance(cube) {
+            height = cube.getAttribute('height');
+            return Math.floor(height / 5);
         }
 
         function checkCollision(cube) {
