@@ -24,7 +24,8 @@
         const CUBE_MAX_SIZE = 60;
         const CUBE_THINK_INTERVAL_MS = 100;
         const CUBE_MOVE_DISTANCE = 10;
-        const CUBE_AGE = 1000;
+        const CUBE_MIN_AGE = 500;
+        const CUBE_MAX_AGE = 1000;
 
         var nextCubeID = 0;
         const cubes = [];
@@ -80,11 +81,16 @@
         }
 
         async function giveLife(cube) {
-            for (var age = 0; age < CUBE_AGE; age++) {
+            const deathAge = generateRandomNumberBetween(CUBE_MIN_AGE, CUBE_MAX_AGE);
+            for (var age = 0; age < deathAge; age++) {
                 await sleep(CUBE_THINK_INTERVAL_MS);
                 doSomething(cube);
             }
             die(cube);
+        }
+
+        function generateRandomNumberBetween(min, max) {
+            return Math.floor(Math.random() * max) + min;
         }
 
         function sleep(ms) {
@@ -122,10 +128,6 @@
             cube.setAttribute('fill', CUBE_FILL_NORMAL);
         }
 
-        function generateRandomNumberBetween(min, max) {
-            return Math.floor(Math.random() * max) + min;
-        }
-
         function move(cube, direction) {
             x = Number(cube.getAttribute('x'));
             y = Number(cube.getAttribute('y'));
@@ -161,7 +163,7 @@
                 if (cubeID === otherCubeID) return;
                 if (isDead(otherCube)) return;
                 const otherCubeBoundary = getBoundary(otherCube);
-                collided = 
+                collided =
                     cubeBoundary.left <= otherCubeBoundary.right &&
                     cubeBoundary.right >= otherCubeBoundary.left &&
                     cubeBoundary.top <= otherCubeBoundary.bottom &&
