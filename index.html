@@ -161,13 +161,17 @@
                 if (collided) return;
                 const otherCubeID = otherCube.getAttribute('id');
                 if (cubeID === otherCubeID) return;
-                if (isDead(otherCube)) return;
                 const otherCubeBoundary = getBoundary(otherCube);
-                collided =
+                justCollided =
                     cubeBoundary.left <= otherCubeBoundary.right &&
                     cubeBoundary.right >= otherCubeBoundary.left &&
                     cubeBoundary.top <= otherCubeBoundary.bottom &&
                     cubeBoundary.bottom >= otherCubeBoundary.top;
+                if (justCollided && isDead(otherCube)) {
+                    disappear(otherCube);
+                    return;
+                }
+                collided = collided || justCollided;
             });
             if (collided) updateMessage('Your cubes have collided!');
             return collided;
@@ -184,6 +188,11 @@
 
         function isDead(cube) {
             return (cube.getAttribute('fill') === CUBE_FILL_DEAD);
+        }
+
+        function disappear(cube) {
+            cube.setAttribute('fill-opacity', 0);
+            updateMessage('A dead cube disappeared');
         }
 
         function checkCollisionWithCanvasEdge(cube) {
